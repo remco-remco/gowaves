@@ -13,11 +13,12 @@ import (
 )
 
 type Importer struct {
-	storage *Storage
+	storage         *Storage
+	transactionType proto.TransactionType
 }
 
-func NewImporter(storage *Storage) *Importer {
-	return &Importer{storage: storage}
+func NewImporter(storage *Storage, transactionType int) *Importer {
+	return &Importer{storage: storage, transactionType: proto.TransactionType(transactionType)}
 }
 
 func (im *Importer) Import(n string) {
@@ -100,77 +101,77 @@ func (im *Importer) Import(n string) {
 						if err != nil {
 							fmt.Printf("%d: Failed to extract IssueV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.TransferTransaction):
 						var tx proto.TransferV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract TransferV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.ReissueTransaction):
 						var tx proto.ReissueV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract ReissueV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.BurnTransaction):
 						var tx proto.BurnV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract BurnV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.ExchangeTransaction):
 						var tx proto.ExchangeV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract ExchangeV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.LeaseTransaction):
 						var tx proto.LeaseV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract LeaseV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.LeaseCancelTransaction):
 						var tx proto.LeaseCancelV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract LeaseCancelV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.CreateAliasTransaction):
 						var tx proto.CreateAliasV2
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract CreateAliasV2 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.DataTransaction):
 						var tx proto.DataV1
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract DataV1 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.SetScriptTransaction):
 						var tx proto.SetScriptV1
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract SetScriptV1 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					case byte(proto.SponsorshipTransaction):
 						var tx proto.SponsorshipV1
 						err := tx.UnmarshalBinary(txb)
 						if err != nil {
 							fmt.Printf("%d: Failed to extract SponsorshipV1 transaction: %s\n", h, err.Error())
 						}
-						im.checkAndPut(h, tx.ID[:])
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					default:
 						fmt.Printf("ALARM 2 AT %d\n", h)
 					}
@@ -180,77 +181,77 @@ func (im *Importer) Import(n string) {
 					if err != nil {
 						fmt.Printf("%d: Failed to extract Genesis transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.PaymentTransaction):
 					var tx proto.Payment
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract Payment transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.IssueTransaction):
 					var tx proto.IssueV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract IssueV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.TransferTransaction):
 					var tx proto.TransferV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract TransferV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.ReissueTransaction):
 					var tx proto.ReissueV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract ReissueV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.BurnTransaction):
 					var tx proto.BurnV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract BurnV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.ExchangeTransaction):
 					var tx proto.ExchangeV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract ExchangeV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.LeaseTransaction):
 					var tx proto.LeaseV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract LeaseV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.LeaseCancelTransaction):
 					var tx proto.LeaseCancelV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract LeaseCancelV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.CreateAliasTransaction):
 					var tx proto.CreateAliasV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract CreateAliasV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				case byte(proto.MassTransferTransaction):
 					var tx proto.MassTransferV1
 					err := tx.UnmarshalBinary(txb)
 					if err != nil {
 						fmt.Printf("%d: Failed to extract MassTransferV1 transaction: %s\n", h, err.Error())
 					}
-					im.checkAndPut(h, tx.ID[:])
+					im.checkAndPut(h, tx.ID[:], tx.Type)
 				default:
 					fmt.Printf("ALARM 1 AT %d\n", h)
 				}
@@ -264,7 +265,7 @@ func (im *Importer) Import(n string) {
 				d = d[4+s:]
 			}
 		}
-		if h % 100000 == 0 {
+		if h%100000 == 0 {
 			elapsed := time.Since(start)
 			fmt.Printf("%d: %s\n", h, elapsed)
 		}
@@ -272,7 +273,7 @@ func (im *Importer) Import(n string) {
 	}
 }
 
-func (im *Importer) checkAndPut(h int, id []byte) {
+func (im *Importer) checkAndPut(h int, id []byte, tt proto.TransactionType) {
 	has, err := im.storage.HasID(id)
 	if err != nil {
 		fmt.Printf("Failed to check ID: %s\n", err.Error())
@@ -289,5 +290,8 @@ func (im *Importer) checkAndPut(h int, id []byte) {
 		if err != nil {
 			fmt.Printf("Failed to put ID: %s\n", err.Error())
 		}
+	}
+	if im.transactionType != 0 && im.transactionType == tt {
+		fmt.Printf("Transaction of type %d with ID %s at height %d\n", tt, base58.Encode(id), h)
 	}
 }

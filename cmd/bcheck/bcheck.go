@@ -9,8 +9,9 @@ import (
 
 func main() {
 	var (
-		importFile = flag.String("import-file", "", "Path to binary blockchain file to import.")
-		db         = flag.String("db", "", "Path to data base.")
+		importFile      = flag.String("import-file", "", "Path to binary blockchain file to import.")
+		db              = flag.String("db", "", "Path to data base.")
+		transactionType = flag.Int("transaction-type", 0, "Filter transaction by type")
 	)
 	flag.Parse()
 
@@ -31,6 +32,6 @@ func main() {
 		}
 	}()
 
-	importer := internal.NewImporter(&storage)
+	importer := internal.NewImporter(&storage, *transactionType)
 	importer.Import(*importFile)
 }
