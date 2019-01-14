@@ -172,6 +172,13 @@ func (im *Importer) Import(n string) {
 							fmt.Printf("%d: Failed to extract SponsorshipV1 transaction: %s\n", h, err.Error())
 						}
 						im.checkAndPut(h, tx.ID[:], tx.Type)
+					case byte(proto.SetAssetScriptTransaction):
+						var tx proto.SetAssetScriptV1
+						err := tx.UnmarshalBinary(txb)
+						if err != nil {
+							fmt.Printf("%d: Failed to extract SetAssetScriptV1 transaction: %s\n", h, err.Error())
+						}
+						im.checkAndPut(h, tx.ID[:], tx.Type)
 					default:
 						fmt.Printf("ALARM 2 AT %d\n", h)
 					}
