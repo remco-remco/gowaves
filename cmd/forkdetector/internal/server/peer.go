@@ -14,10 +14,22 @@ import (
 
 	"github.com/mr-tron/base58/base58"
 	"github.com/wavesplatform/gowaves/pkg/crypto"
-	"github.com/wavesplatform/gowaves/pkg/db"
-	"github.com/wavesplatform/gowaves/pkg/p2p"
+	"github.com/wavesplatform/gowaves/cmd/forkdetector/internal/db"
+	"github.com/wavesplatform/gowaves/cmd/forkdetector/internal/p2p"
 	"github.com/wavesplatform/gowaves/pkg/proto"
 )
+
+const (
+	stateConnecting = "connecting"
+	stateConnected  = "connected"
+)
+
+type NodeState struct {
+	State          string           `json:"state"`
+	Addr           string           `json:"addr"`
+	LastKnownBlock crypto.Signature `json:"last_known_block"`
+	KnownVersion   proto.Version    `json:"known_version"`
+}
 
 // Peer manages all the connection logic with a single peer
 //

@@ -1,4 +1,4 @@
-package server
+package internal
 
 import (
 	"context"
@@ -13,10 +13,17 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mr-tron/base58/base58"
+	"github.com/wavesplatform/gowaves/cmd/forkdetector/internal/db"
 	"github.com/wavesplatform/gowaves/pkg/crypto"
-	"github.com/wavesplatform/gowaves/pkg/db"
 	"github.com/wavesplatform/gowaves/pkg/proto"
 )
+
+type NetworkConfig struct {
+	Bind            string
+	Name            string
+	DeclaredAddress string
+	Peers           []string
+}
 
 type Server struct {
 	BootPeerAddrs []string
@@ -33,7 +40,8 @@ type Server struct {
 	ctx     context.Context
 }
 
-func (s *Server) Run(ctx context.Context) {
+func StartNetworkServer(interrupt <-chan struct{}, cfg NetworkConfig) (<-chan struct{}, error) {
+
 	if s.Listen == "" {
 		return
 	}
@@ -238,8 +246,8 @@ func (s *Server) getNodesVerbose(w http.ResponseWriter, r *http.Request) {
 }
 
 var info = `
-<a href="/nodes">/nodes</a><br/>
-<a href="/nodes/verbose">/nodes/verbose</a><br/>
+<a href="/peers">/peers</a><br/>
+<a href="/peers/verbose">/peers/verbose</a><br/>
 <a href="/node/{addr}">/node/{addr}</a><br/>
 <a href="/blocks/at/height/{height}">/blocks/at/height/{height}</a><br/>
 <a href="/blocks/signature/{sig:[a-zA-Z0-9]{88}}">/blocks/signature/{sig:[a-zA-Z0-9]{88}}</a>
@@ -303,9 +311,9 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func (s *Server) initRoutes() {
 	s.router.HandleFunc("/blocks/signature/{sig:[a-zA-Z0-9]{88}}", s.getBlock).Methods("GET")
 	s.router.HandleFunc("/blocks/at/height/{height}", s.getBlocksAtHeight).Methods("GET")
-	s.router.HandleFunc("/nodes", s.getNodes).Methods("GET")
+	s.router.HandleFunc("/peers", s.getNodes).Methods("GET")
 	s.router.HandleFunc("/node/{addr}", s.getNode).Methods("GET")
-	s.router.HandleFunc("/nodes/verbose", s.getNodesVerbose).Methods("GET")
+	s.router.HandleFunc("/peers/verbose", s.getNodesVerbose).Methods("GET")
 	s.router.HandleFunc("/", s.getInfo).Methods("GET")
 }
 

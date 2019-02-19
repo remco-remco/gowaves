@@ -268,13 +268,15 @@ func TestProtocolMarshalling(t *testing.T) {
 			var writerBuffer bytes.Buffer
 			writer := io.Writer(&writerBuffer)
 
-			v.testMessage.WriteTo(writer)
+			_, err = v.testMessage.WriteTo(writer)
+			require.NoError(t, err)
 
 			if !bytes.Equal(writerBuffer.Bytes(), data) {
 				t.Errorf("failed to write message to writer")
 			}
 
-			v.testMessage.WriteTo(writer)
+			_, err = v.testMessage.WriteTo(writer)
+			require.NoError(t, err)
 
 			reader := io.Reader(&writerBuffer)
 
@@ -286,7 +288,8 @@ func TestProtocolMarshalling(t *testing.T) {
 				t.Errorf("failed to correclty unmarshal message")
 			}
 
-			m.ReadFrom(reader)
+			_, err = m.ReadFrom(reader)
+			require.NoError(t, err)
 			if !v.testMessage.Equal(m) {
 				t.Errorf("failed to correctly read message from reader")
 			}
@@ -294,7 +297,7 @@ func TestProtocolMarshalling(t *testing.T) {
 	}
 }
 
-func TestTransactionMessage_UnmarshalBinary(t *testing.T) {
+func TestTransactionMessageUnmarshalBinary(t *testing.T) {
 
 	p := TransactionMessage{
 		Transaction: []byte("transaction"),
@@ -312,7 +315,7 @@ func TestTransactionMessage_UnmarshalBinary(t *testing.T) {
 	assert.Equal(t, []byte("transaction"), p2.Transaction)
 }
 
-func TestPeerInfo_MarshalJSON(t *testing.T) {
+func TestPeerInfoMarshalJSON(t *testing.T) {
 	p := PeerInfo{
 		Addr: net.ParseIP("8.8.8.8"),
 		Port: 80,
@@ -334,7 +337,7 @@ func TestNewPeerInfoFromString(t *testing.T) {
 	assert.EqualValues(t, 6868, rs.Port)
 }
 
-func TestPeerInfo_UnmarshalJSON(t *testing.T) {
+func TestPeerInfoUnmarshalJSON(t *testing.T) {
 	p := new(PeerInfo)
 	err := json.Unmarshal([]byte(`"/159.65.239.245:6868"`), p)
 	require.Nil(t, err)
@@ -342,7 +345,7 @@ func TestPeerInfo_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, uint16(6868), p.Port)
 }
 
-func TestPeerInfo_UnmarshalJSON_WithoutSlash(t *testing.T) {
+func TestPeerInfoUnmarshalJSONWithoutSlash(t *testing.T) {
 	p := new(PeerInfo)
 	err := json.Unmarshal([]byte(`"159.65.239.245:6868"`), p)
 	require.Nil(t, err)
@@ -350,7 +353,7 @@ func TestPeerInfo_UnmarshalJSON_WithoutSlash(t *testing.T) {
 	assert.Equal(t, uint16(6868), p.Port)
 }
 
-func TestPeerInfo_UnmarshalJSON_WithoutPort(t *testing.T) {
+func TestPeerInfoUnmarshalJSONWithoutPort(t *testing.T) {
 	p := new(PeerInfo)
 	err := json.Unmarshal([]byte(`"/159.65.239.245"`), p)
 	require.Nil(t, err)
@@ -358,14 +361,14 @@ func TestPeerInfo_UnmarshalJSON_WithoutPort(t *testing.T) {
 	assert.Equal(t, uint16(0), p.Port)
 }
 
-func TestPeerInfo_UnmarshalJSON_NA(t *testing.T) {
+func TestPeerInfoUnmarshalJSONNotAvailable(t *testing.T) {
 	p := new(PeerInfo)
 	err := json.Unmarshal([]byte(`"N/A"`), p)
 	require.Nil(t, err)
 	assert.Equal(t, &PeerInfo{}, p)
 }
 
-func TestHandshake_ReadFrom(t *testing.T) {
+func TestHandshakeReadFrom(t *testing.T) {
 	b := []byte{6, 119, 97, 118, 101, 115, 84, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 2, 11, 78, 111, 100, 101, 45, 53, 49, 52, 49, 55, 56, 0, 0, 0, 0, 0, 7, 216, 130, 0, 0, 0, 0 /*timestamp*/, 0, 0, 0, 0, 0, 0, 0, 0}
 	h := Handshake{}
 	_, err := h.ReadFrom(bytes.NewReader(b))
@@ -376,7 +379,7 @@ func TestHandshake_ReadFrom(t *testing.T) {
 	assert.Equal(t, []byte(nil), h.DeclaredAddrBytes)
 }
 
-func TestHandshake_ReadFrom2(t *testing.T) {
+func TestHandshakeReadFrom2(t *testing.T) {
 	b := []byte{
 		6, 119, 97, 118, 101, 115, 84, // app name
 		0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 2, // version
@@ -397,7 +400,7 @@ func TestHandshake_ReadFrom2(t *testing.T) {
 	assert.EqualValues(t, 0, h.Timestamp)
 }
 
-func TestHandshake_RoundTrip(t *testing.T) {
+func TestHandshakeRoundTrip(t *testing.T) {
 
 	declAddr := PeerInfo{Addr: net.IPv4(217, 100, 219, 251), Port: 6863}
 	declByte, _ := declAddr.MarshalBinary()
@@ -422,7 +425,7 @@ func TestHandshake_RoundTrip(t *testing.T) {
 	assert.Equal(t, h1, h3)
 }
 
-func TestTransactionMessage_MarshalRoundTrip(t *testing.T) {
+func TestTransactionMessageMarshalRoundTrip(t *testing.T) {
 	bts := []byte{
 		0, 0, 1, 42, // total length
 		18, 52, 86, 120, // magic
@@ -436,4 +439,24 @@ func TestTransactionMessage_MarshalRoundTrip(t *testing.T) {
 	bts2, err := m.MarshalBinary()
 	require.NoError(t, err)
 	assert.Equal(t, bts, bts2)
+}
+
+func TestNewVersionFromString(t *testing.T) {
+	v, err := NewVersionFromString("1.2.3")
+	require.NoError(t, err)
+	assert.Equal(t, Version{1, 2,3}, *v)
+	v, err = NewVersionFromString("1.2")
+	require.NoError(t, err)
+	assert.Equal(t, Version{1, 2,0}, *v)
+	v, err = NewVersionFromString("1")
+	require.NoError(t, err)
+	assert.Equal(t, Version{1, 0,0}, *v)
+	_, err = NewVersionFromString("")
+	assert.Error(t, err)
+	_, err = NewVersionFromString("1.2.3.4")
+	assert.Error(t, err)
+	_, err = NewVersionFromString("1234567890.5555555555.9999999999")
+	assert.Error(t, err)
+	_, err = NewVersionFromString("-1234.-4567.-8900")
+	assert.Error(t, err)
 }

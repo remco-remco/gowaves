@@ -121,6 +121,29 @@ type Version struct {
 	Major, Minor, Patch uint32
 }
 
+func NewVersionFromString(version string) (*Version, error) {
+	parts := strings.Split(version, ".")
+	if l := len(parts); l <= 0 || l > 3 {
+		return nil, errors.Errorf("invalid version string '%s'", version)
+	}
+	r := &Version{}
+	for n, p := range parts {
+		i, err := strconv.ParseUint(p, 10, 32)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid version string '%s'", version)
+		}
+		switch n {
+		case 0:
+			r.Major = uint32(i)
+		case 1:
+			r.Minor = uint32(i)
+		case 2:
+			r.Patch = uint32(i)
+		}
+	}
+	return r, nil
+}
+
 // Handshake is the handshake structure of the waves protocol
 type Handshake struct {
 	AppName           string
