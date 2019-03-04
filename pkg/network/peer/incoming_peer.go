@@ -13,11 +13,12 @@ import (
 )
 
 type IncomingPeer struct {
-	params   IncomingPeerParams
-	conn     conn.Connection
-	remote   remote
-	uniqueID string
-	cancel   context.CancelFunc
+	params    IncomingPeerParams
+	conn      conn.Connection
+	remote    remote
+	uniqueID  string
+	cancel    context.CancelFunc
+	handshake proto.Handshake
 }
 
 type IncomingPeerParams struct {
@@ -85,11 +86,12 @@ func RunIncomingPeer(ctx context.Context, params IncomingPeerParams) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	peer := &IncomingPeer{
-		params:   params,
-		conn:     connection,
-		remote:   remote,
-		uniqueID: fmt.Sprintf("incoming connection %s -> %s", c.RemoteAddr().String(), c.LocalAddr().String()),
-		cancel:   cancel,
+		params:    params,
+		conn:      connection,
+		remote:    remote,
+		uniqueID:  fmt.Sprintf("incoming connection %s -> %s", c.RemoteAddr().String(), c.LocalAddr().String()),
+		cancel:    cancel,
+		handshake: readHandshake,
 	}
 
 	decl := proto.PeerInfo{}
@@ -99,13 +101,14 @@ func RunIncomingPeer(ctx context.Context, params IncomingPeerParams) {
 	out := InfoMessage{
 		ID: peer.uniqueID,
 		Value: &Connected{
-			Peer:       peer,
-			Version:    readHandshake.Version,
-			DeclAddr:   decl,
-			RemoteAddr: c.RemoteAddr().String(),
-			LocalAddr:  c.LocalAddr().String(),
-			AppName:    readHandshake.AppName,
-			NodeName:   readHandshake.NodeName,
+			Peer: peer,
+			//Handshake: readHandshake,
+			//Version:    readHandshake.Version,
+			//DeclAddr:   decl,
+			//RemoteAddr: c.RemoteAddr().String(),
+			//LocalAddr:  c.LocalAddr().String(),
+			//AppName:    readHandshake.AppName,
+			//NodeName:   readHandshake.NodeName,
 		},
 	}
 	params.Parent.InfoCh <- out
@@ -151,4 +154,8 @@ func (a *IncomingPeer) Direction() Direction {
 
 func (a *IncomingPeer) Connection() conn.Connection {
 	return a.conn
+}
+
+func (a *IncomingPeer) Handshake() proto.Handshake {
+	return a.handshake
 }

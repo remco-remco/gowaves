@@ -1,8 +1,9 @@
 package util
 
 import (
-	"github.com/magiconair/properties/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTransferV1Builder(t *testing.T) {

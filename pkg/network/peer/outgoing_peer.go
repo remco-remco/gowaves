@@ -26,6 +26,7 @@ type OutgoingPeer struct {
 	cancel     context.CancelFunc
 	remote     remote
 	connection conn.Connection
+	handshake  proto.Handshake
 }
 
 func RunOutgoingPeer(ctx context.Context, params OutgoingPeerParams) {
@@ -48,9 +49,8 @@ func RunOutgoingPeer(ctx context.Context, params OutgoingPeerParams) {
 		return
 	}
 	p.connection = connection
+	p.handshake = *handshake
 
-	version := handshake.Version
-	declAddr, err := handshake.PeerInfo()
 	if err != nil {
 		zap.S().Info(err, params.Address)
 	}
@@ -58,13 +58,14 @@ func RunOutgoingPeer(ctx context.Context, params OutgoingPeerParams) {
 	connected := InfoMessage{
 		ID: params.Address,
 		Value: &Connected{
-			Peer:       &p,
-			Version:    version,
-			DeclAddr:   declAddr,
-			RemoteAddr: connection.Conn().RemoteAddr().String(),
-			LocalAddr:  connection.Conn().LocalAddr().String(),
-			AppName:    handshake.AppName,
-			NodeName:   handshake.NodeName,
+			Peer: &p,
+			//Handshake: *handshake,
+			//Version:    version,
+			//DeclAddr:   declAddr,
+			//RemoteAddr: connection.Conn().RemoteAddr().String(),
+			//LocalAddr:  connection.Conn().LocalAddr().String(),
+			//AppName:    handshake.AppName,
+			//NodeName:   handshake.NodeName,
 		},
 	}
 	params.Parent.InfoCh <- connected
@@ -169,4 +170,8 @@ func (a *OutgoingPeer) ID() string {
 
 func (a *OutgoingPeer) Connection() conn.Connection {
 	return a.connection
+}
+
+func (a *OutgoingPeer) Handshake() proto.Handshake {
+	return a.handshake
 }

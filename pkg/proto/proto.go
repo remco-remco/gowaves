@@ -441,6 +441,15 @@ func (m *GetPeersMessage) WriteTo(w io.Writer) (int64, error) {
 	return n, err
 }
 
+type IpPort struct {
+	Addr net.IP
+	Port uint16
+}
+
+func (a IpPort) String() string {
+	return fmt.Sprintf("%s:%d", a.Addr.String(), a.Port)
+}
+
 // PeerInfo represents the address of a single peer
 type PeerInfo struct {
 	Addr net.IP

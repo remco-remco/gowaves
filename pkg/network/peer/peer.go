@@ -33,13 +33,14 @@ type InfoMessage struct {
 }
 
 type Connected struct {
-	Peer       Peer
-	Version    proto.Version
-	DeclAddr   proto.PeerInfo
-	AppName    string
-	NodeName   string
-	LocalAddr  string
-	RemoteAddr string
+	Peer Peer
+	//Handshake proto.Handshake
+	//Version    proto.Version
+	//DeclAddr   proto.PeerInfo
+	//AppName    string
+	//NodeName   string
+	//LocalAddr  string
+	//RemoteAddr string
 }
 
 type ReceiveFromRemoteCallback func(b []byte, address string, resendTo chan ProtoMessage, pool bytespool.Pool)
@@ -76,4 +77,5 @@ type Peer interface {
 	SendMessage(proto.Message)
 	ID() string
 	Connection() conn.Connection
+	Handshake() proto.Handshake
 }

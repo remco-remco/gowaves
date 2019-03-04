@@ -1,4 +1,4 @@
-package retransmit
+package node
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type PeerSpawner interface {
 	SpawnIncoming(ctx context.Context, c net.Conn)
 }
 
-type PeerOutgoingSpawnerImpl struct {
+type PeerSpawnerImpl struct {
 	pool         bytespool.Pool
 	parent       peer.Parent
 	wavesNetwork string
@@ -23,8 +23,8 @@ type PeerOutgoingSpawnerImpl struct {
 	skipFunc     conn.SkipFilter
 }
 
-func NewPeerSpawner(pool bytespool.Pool, skipFunc conn.SkipFilter, parent peer.Parent, WavesNetwork string, declAddr proto.PeerInfo) *PeerOutgoingSpawnerImpl {
-	return &PeerOutgoingSpawnerImpl{
+func NewPeerSpawner(pool bytespool.Pool, skipFunc conn.SkipFilter, parent peer.Parent, WavesNetwork string, declAddr proto.PeerInfo) *PeerSpawnerImpl {
+	return &PeerSpawnerImpl{
 		pool:         pool,
 		skipFunc:     skipFunc,
 		parent:       parent,
@@ -33,7 +33,7 @@ func NewPeerSpawner(pool bytespool.Pool, skipFunc conn.SkipFilter, parent peer.P
 	}
 }
 
-func (a *PeerOutgoingSpawnerImpl) SpawnOutgoing(ctx context.Context, address string) {
+func (a *PeerSpawnerImpl) SpawnOutgoing(ctx context.Context, address string) {
 	params := peer.OutgoingPeerParams{
 		Address:      address,
 		WavesNetwork: a.wavesNetwork,
@@ -46,7 +46,7 @@ func (a *PeerOutgoingSpawnerImpl) SpawnOutgoing(ctx context.Context, address str
 	peer.RunOutgoingPeer(ctx, params)
 }
 
-func (a *PeerOutgoingSpawnerImpl) SpawnIncoming(ctx context.Context, c net.Conn) {
+func (a *PeerSpawnerImpl) SpawnIncoming(ctx context.Context, c net.Conn) {
 	params := peer.IncomingPeerParams{
 		WavesNetwork: a.wavesNetwork,
 		Conn:         c,

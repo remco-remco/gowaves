@@ -19,7 +19,7 @@ import (
 	"github.com/wavesplatform/gowaves/pkg/proto"
 )
 
-// Peer manages all the connection logic with a single peer
+// Connected manages all the connection logic with a single peer
 //
 // It may be used in a two ways: as a client connection and as a server connection
 //
@@ -456,7 +456,7 @@ func (p *Peer) Stop() {
 	p.wg.Wait()
 }
 
-// PeerOption is a creating option for creating Peer
+// PeerOption is a creating option for creating Connected
 type PeerOption func(*Peer) error
 
 // WithAddr configures peer to have an addr
