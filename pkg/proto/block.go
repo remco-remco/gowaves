@@ -19,8 +19,6 @@ type BlockHeader struct {
 	TransactionCount       int
 	GenPublicKey           crypto.PublicKey
 	BlockSignature         crypto.Signature
-
-	Height uint64
 }
 
 func (b *BlockHeader) MarshalHeaderToBinary() ([]byte, error) {

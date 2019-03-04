@@ -92,7 +92,6 @@ func newStateManager(dataDir string, params BlockStorageParams) (*stateManager, 
 			Timestamp:      1460678400000,
 			BaseTarget:     153722867,
 			BlockSignature: genesisSig,
-			Height:         1,
 		},
 	}
 	state := &stateManager{genesis: genesis, db: db, scores: scores, accounts: accountsStor, rw: rw}
