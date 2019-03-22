@@ -145,7 +145,7 @@ func (a *BehaviourImpl) errorHandler(id string, e error) {
 }
 
 func (a *BehaviourImpl) Address(ctx context.Context, addr string) {
-	p, err := proto.NewPeerInfoFromString(addr)
+	p, err := proto.NewPeerAddressFromString(addr)
 	if err != nil {
 		zap.S().Error(err)
 		return

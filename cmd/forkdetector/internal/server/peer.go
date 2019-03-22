@@ -47,9 +47,9 @@ type Peer struct {
 	db       *db.WavesDB
 	state    NodeState
 	genesis  crypto.Signature
-	declAddr proto.PeerInfo
+	declAddr proto.PeerAddress
 
-	peers chan proto.PeerInfo
+	peers chan proto.PeerAddress
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -494,7 +494,7 @@ func WithConn(conn net.Conn) PeerOption {
 }
 
 // WithPeersChan configures peer with a channel to send peer infos to
-func WithPeersChan(c chan proto.PeerInfo) PeerOption {
+func WithPeersChan(c chan proto.PeerAddress) PeerOption {
 	return func(p *Peer) error {
 		p.peers = c
 		return nil
@@ -508,7 +508,7 @@ func WithDeclAddr(addr string) PeerOption {
 			return nil
 		}
 
-		var declAddr proto.PeerInfo
+		var declAddr proto.PeerAddress
 		split := strings.Split(addr, ":")
 		if len(split) != 2 {
 			zap.S().Errorf("addr %s", addr)

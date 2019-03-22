@@ -35,7 +35,7 @@ type InfoMessage struct {
 type Connected struct {
 	Peer       Peer
 	Version    proto.Version
-	DeclAddr   proto.PeerInfo
+	DeclAddr   proto.PeerAddress
 	AppName    string
 	NodeName   string
 	LocalAddr  string

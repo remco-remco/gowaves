@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sort"
 	"strings"
 	"testing"
 
@@ -189,7 +190,7 @@ var tests = []protocolMarshallingTest{
 		"00000009  12345678     01         00000000              ",
 	},
 	{
-		&PeersMessage{[]PeerInfo{
+		&PeersMessage{[]PeerAddress{
 			{net.IPv4(0x8e, 0x5d, 0x25, 0x79), 0x1ad4},
 			{net.IPv4(0x34, 0x4d, 0x6f, 0xdb), 0x1acf},
 			{net.IPv4(0x34, 0x1c, 0x42, 0xd9), 0x1acf},
@@ -201,7 +202,7 @@ var tests = []protocolMarshallingTest{
 		"00000039  12345678      02         0000002c      0b9ebfaf   00000005 8e5d2579 00001ad4 344d6fdb 00001acf 341c42d9 00001acf 341e2f43 00001acf 34335cb6 00001acf",
 	},
 	{
-		&PeersMessage{[]PeerInfo{{net.IPv4(1, 2, 3, 4), 0x8888}}},
+		&PeersMessage{[]PeerAddress{{net.IPv4(1, 2, 3, 4), 0x8888}}},
 		//P. Len |    Magic | ContentID | Payload Length | PayloadCsum | Payload
 		"00000019  12345678      02         0000000c         648fa8c8     00000001 01020304 00008888",
 	},
@@ -316,7 +317,7 @@ func TestTransactionMessageUnmarshalBinary(t *testing.T) {
 }
 
 func TestPeerInfoMarshalJSON(t *testing.T) {
-	p := PeerInfo{
+	p := PeerAddress{
 		Addr: net.ParseIP("8.8.8.8"),
 		Port: 80,
 	}
@@ -325,20 +326,20 @@ func TestPeerInfoMarshalJSON(t *testing.T) {
 	assert.Equal(t, `"8.8.8.8:80"`, string(js))
 
 	// test incorrect struct
-	p = PeerInfo{}
+	p = PeerAddress{}
 	js, err = json.Marshal(p)
 	require.NotNil(t, err)
 }
 
 func TestNewPeerInfoFromString(t *testing.T) {
-	rs, err := NewPeerInfoFromString("34.253.153.4:6868")
+	rs, err := NewPeerAddressFromString("34.253.153.4:6868")
 	require.NoError(t, err)
 	assert.Equal(t, "34.253.153.4", rs.Addr.String())
 	assert.EqualValues(t, 6868, rs.Port)
 }
 
 func TestPeerInfoUnmarshalJSON(t *testing.T) {
-	p := new(PeerInfo)
+	p := new(PeerAddress)
 	err := json.Unmarshal([]byte(`"/159.65.239.245:6868"`), p)
 	require.Nil(t, err)
 	assert.Equal(t, "159.65.239.245", p.Addr.String())
@@ -346,7 +347,7 @@ func TestPeerInfoUnmarshalJSON(t *testing.T) {
 }
 
 func TestPeerInfoUnmarshalJSONWithoutSlash(t *testing.T) {
-	p := new(PeerInfo)
+	p := new(PeerAddress)
 	err := json.Unmarshal([]byte(`"159.65.239.245:6868"`), p)
 	require.Nil(t, err)
 	assert.Equal(t, "159.65.239.245", p.Addr.String())
@@ -354,7 +355,7 @@ func TestPeerInfoUnmarshalJSONWithoutSlash(t *testing.T) {
 }
 
 func TestPeerInfoUnmarshalJSONWithoutPort(t *testing.T) {
-	p := new(PeerInfo)
+	p := new(PeerAddress)
 	err := json.Unmarshal([]byte(`"/159.65.239.245"`), p)
 	require.Nil(t, err)
 	assert.Equal(t, "159.65.239.245", p.Addr.String())
@@ -362,10 +363,10 @@ func TestPeerInfoUnmarshalJSONWithoutPort(t *testing.T) {
 }
 
 func TestPeerInfoUnmarshalJSONNotAvailable(t *testing.T) {
-	p := new(PeerInfo)
+	p := new(PeerAddress)
 	err := json.Unmarshal([]byte(`"N/A"`), p)
 	require.Nil(t, err)
-	assert.Equal(t, &PeerInfo{}, p)
+	assert.Equal(t, &PeerAddress{}, p)
 }
 
 func TestHandshakeReadFrom(t *testing.T) {
@@ -381,11 +382,11 @@ func TestHandshakeReadFrom(t *testing.T) {
 
 func TestHandshakeReadFrom2(t *testing.T) {
 	b := []byte{
-		6, 119, 97, 118, 101, 115, 84, // app name
-		0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 2, // version
+		6, 119, 97, 118, 101, 115, 84,                                                                                     // app name
+		0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 2,                                                                               // version
 		23, 116, 101, 115, 116, 110, 111, 100, 101, 49, 46, 119, 97, 118, 101, 115, 110, 111, 100, 101, 46, 110, 101, 116, // node name
-		0, 0, 0, 0, 0, 9, 101, 17, // nonce
-		0, 0, 0, 8 /*length*/, 217, 100, 219, 251, 0, 0, 26, 207,
+		0, 0, 0, 0, 0, 9, 101, 17,                                                                                         // nonce
+		0, 0, 0, 8                                                                                                         /*length*/, 217, 100, 219, 251, 0, 0, 26, 207,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	h := Handshake{}
 	_, err := h.ReadFrom(bytes.NewReader(b))
@@ -394,15 +395,15 @@ func TestHandshakeReadFrom2(t *testing.T) {
 	assert.Equal(t, Version{Minor: 15, Patch: 2}, h.Version)
 	assert.Equal(t, "testnode1.wavesnode.net", h.NodeName)
 	assert.EqualValues(t, 615697, h.NodeNonce)
-	info, err := h.PeerInfo()
+	info, err := h.DeclaredAddress()
 	require.NoError(t, err)
-	assert.Equal(t, PeerInfo{Addr: net.IPv4(217, 100, 219, 251), Port: 6863}, info)
+	assert.Equal(t, PeerAddress{Addr: net.IPv4(217, 100, 219, 251), Port: 6863}, info)
 	assert.EqualValues(t, 0, h.Timestamp)
 }
 
 func TestHandshakeRoundTrip(t *testing.T) {
 
-	declAddr := PeerInfo{Addr: net.IPv4(217, 100, 219, 251), Port: 6863}
+	declAddr := PeerAddress{Addr: net.IPv4(217, 100, 219, 251), Port: 6863}
 	declByte, _ := declAddr.MarshalBinary()
 
 	h1 := Handshake{
@@ -427,10 +428,10 @@ func TestHandshakeRoundTrip(t *testing.T) {
 
 func TestTransactionMessageMarshalRoundTrip(t *testing.T) {
 	bts := []byte{
-		0, 0, 1, 42, // total length
+		0, 0, 1, 42,     // total length
 		18, 52, 86, 120, // magic
-		25,          // transaction marker
-		0, 0, 1, 29, // payload length
+		25,              // transaction marker
+		0, 0, 1, 29,     // payload length
 		208, 57, 41, 65, 4, 119, 220, 26, 37, 147, 197, 72, 109, 170, 147, 83, 220, 218, 17, 212, 125, 39, 185, 131, 203, 69, 8, 149, 185, 215, 35, 33, 52, 201, 186, 41, 33, 5, 224, 50, 154, 110, 14, 167, 44, 2, 106, 176, 54, 15, 65, 224, 128, 42, 203, 173, 248, 58, 234, 2, 226, 79, 100, 91, 156, 240, 21, 122, 6, 4, 136, 194, 176, 221, 33, 193, 126, 39, 31, 18, 42, 194, 241, 210, 179, 65, 245, 146, 6, 241, 229, 173, 11, 254, 121, 119, 248, 63, 231, 108, 128, 69, 1, 252, 128, 182, 134, 205, 22, 113, 112, 222, 246, 195, 232, 27, 191, 145, 230, 69, 162, 55, 112, 210, 135, 135, 126, 165, 69, 100, 184, 192, 145, 75, 122, 1, 252, 128, 182, 134, 205, 22, 113, 112, 222, 246, 195, 232, 27, 191, 145, 230, 69, 162, 55, 112, 210, 135, 135, 126, 165, 69, 100, 184, 192, 145, 75, 122, 0, 0, 1, 105, 6, 165, 214, 102, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 76, 75, 64, 1, 87, 243, 56, 252, 214, 234, 246, 38, 66, 79, 1, 239, 32, 122, 48, 14, 249, 87, 62, 63, 29, 174, 141, 205, 109, 0, 69, 100, 50, 99, 99, 55, 101, 100, 99, 52, 53, 51, 52, 100, 98, 101, 56, 53, 101, 56, 100, 99, 55, 52, 51, 55, 101, 54, 101, 101, 100, 50, 54, 52, 56, 55, 57, 54, 50, 48, 100, 51, 50, 52, 102, 52, 98, 57, 98, 55, 52, 101, 99, 52, 50, 56, 98, 99, 51, 51, 102, 101, 98, 49, 52, 32, 62, 133, 252, 18}
 
 	m := TransactionMessage{}
@@ -444,13 +445,13 @@ func TestTransactionMessageMarshalRoundTrip(t *testing.T) {
 func TestNewVersionFromString(t *testing.T) {
 	v, err := NewVersionFromString("1.2.3")
 	require.NoError(t, err)
-	assert.Equal(t, Version{1, 2,3}, *v)
+	assert.Equal(t, Version{1, 2, 3}, *v)
 	v, err = NewVersionFromString("1.2")
 	require.NoError(t, err)
-	assert.Equal(t, Version{1, 2,0}, *v)
+	assert.Equal(t, Version{1, 2, 0}, *v)
 	v, err = NewVersionFromString("1")
 	require.NoError(t, err)
-	assert.Equal(t, Version{1, 0,0}, *v)
+	assert.Equal(t, Version{1, 0, 0}, *v)
 	_, err = NewVersionFromString("")
 	assert.Error(t, err)
 	_, err = NewVersionFromString("1.2.3.4")
@@ -459,4 +460,28 @@ func TestNewVersionFromString(t *testing.T) {
 	assert.Error(t, err)
 	_, err = NewVersionFromString("-1234.-4567.-8900")
 	assert.Error(t, err)
+}
+
+func TestVersionsSort(t *testing.T) {
+	versions := []Version{
+		{0, 16, 1},
+		{0, 13, 4},
+		{0, 16, 5},
+		{0, 15, 5},
+		{0, 16, 1},
+		{1, 0, 0},
+		{1, 2, 3},
+	}
+	v := ByVersion(versions)
+	sort.Sort(v)
+	expected := []Version{
+		{0, 13, 4},
+		{0, 15, 5},
+		{0, 16, 1},
+		{0, 16, 1},
+		{0, 16, 5},
+		{1, 0, 0},
+		{1, 2, 3},
+	}
+	assert.Equal(t, expected, []Version(v))
 }

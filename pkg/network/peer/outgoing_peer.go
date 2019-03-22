@@ -17,7 +17,7 @@ type OutgoingPeerParams struct {
 	WavesNetwork string
 	Parent       Parent
 	Pool         bytespool.Pool
-	DeclAddr     proto.PeerInfo
+	DeclAddr     proto.PeerAddress
 	Skip         conn.SkipFilter
 }
 
@@ -50,7 +50,7 @@ func RunOutgoingPeer(ctx context.Context, params OutgoingPeerParams) {
 	p.connection = connection
 
 	version := handshake.Version
-	declAddr, err := handshake.PeerInfo()
+	declAddr, err := handshake.DeclaredAddress()
 	if err != nil {
 		zap.S().Info(err, params.Address)
 	}
@@ -80,7 +80,7 @@ func RunOutgoingPeer(ctx context.Context, params OutgoingPeerParams) {
 	})
 }
 
-func (a *OutgoingPeer) connect(ctx context.Context, wavesNetwork string, remote remote, declAddr proto.PeerInfo) (conn.Connection, *proto.Handshake, error) {
+func (a *OutgoingPeer) connect(ctx context.Context, wavesNetwork string, remote remote, declAddr proto.PeerAddress) (conn.Connection, *proto.Handshake, error) {
 	possibleVersions := []uint32{15, 14, 16}
 	index := 0
 

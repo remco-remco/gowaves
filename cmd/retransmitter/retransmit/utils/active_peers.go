@@ -14,7 +14,7 @@ type PeerInfo struct {
 	CreatedAt  time.Time
 	Status     int
 	Version    proto.Version
-	DeclAddr   proto.PeerInfo
+	DeclAddr   proto.PeerAddress
 	RemoteAddr string
 	LocalAddr  string
 	AppName    string
@@ -72,7 +72,7 @@ func (a *Addr2Peers) Each(f func(id string, p *PeerInfo)) {
 	}
 }
 
-// returns *PeerInfo by address, nil if not found
+// returns *PeerAddress by address, nil if not found
 func (a *Addr2Peers) Get(id string) *PeerInfo {
 	a.lock.RLock()
 	defer a.lock.RUnlock()

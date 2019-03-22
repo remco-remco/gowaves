@@ -100,7 +100,7 @@ func TestOutgoingPeer_SendMessage(t *testing.T) {
 		Address:  server.Addr().String(),
 		Parent:   parent,
 		Pool:     bytespool.NewBytesPool(10, 2*1024*1024),
-		DeclAddr: proto.PeerInfo{},
+		DeclAddr: proto.PeerAddress{},
 	}
 	go RunOutgoingPeer(ctx, params)
 

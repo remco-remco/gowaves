@@ -89,9 +89,9 @@ func main() {
 		return
 	}
 
-	declAddr := proto.PeerInfo{}
+	declAddr := proto.PeerAddress{}
 	if decl != "" {
-		declAddr, err = proto.NewPeerInfoFromString(decl)
+		declAddr, err = proto.NewPeerAddressFromString(decl)
 		if err != nil {
 			fmt.Println(err)
 			return

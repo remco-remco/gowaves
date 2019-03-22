@@ -24,7 +24,7 @@ type IncomingPeerParams struct {
 	WavesNetwork string
 	Conn         net.Conn
 	Parent       Parent
-	DeclAddr     proto.PeerInfo
+	DeclAddr     proto.PeerAddress
 	Pool         bytespool.Pool
 	Skip         conn.SkipFilter
 }
@@ -92,7 +92,7 @@ func RunIncomingPeer(ctx context.Context, params IncomingPeerParams) {
 		cancel:   cancel,
 	}
 
-	decl := proto.PeerInfo{}
+	decl := proto.PeerAddress{}
 	_ = decl.UnmarshalBinary(readHandshake.DeclaredAddrBytes)
 	zap.S().Debugf("%s, readhandshake %+v", c.RemoteAddr().String(), readHandshake)
 

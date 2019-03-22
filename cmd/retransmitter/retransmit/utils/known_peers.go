@@ -68,12 +68,12 @@ func (a *KnownPeers) periodicallySave(ctx context.Context, ticker *time.Ticker) 
 	}
 }
 
-func (a *KnownPeers) Addresses() []proto.PeerInfo {
+func (a *KnownPeers) Addresses() []proto.PeerAddress {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	var out []proto.PeerInfo
+	var out []proto.PeerAddress
 	for addr := range a.knownPeers {
-		rs, err := proto.NewPeerInfoFromString(string(addr))
+		rs, err := proto.NewPeerAddressFromString(string(addr))
 		if err != nil {
 			zap.S().Error(err)
 			continue
@@ -83,7 +83,7 @@ func (a *KnownPeers) Addresses() []proto.PeerInfo {
 	return out
 }
 
-func (a *KnownPeers) Add(declAddr proto.PeerInfo, version proto.Version) {
+func (a *KnownPeers) Add(declAddr proto.PeerAddress, version proto.Version) {
 	if declAddr.Empty() {
 		return
 	}
